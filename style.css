@@ -76,7 +76,7 @@ body {
 input#name {
   border: none;
   outline: none;
-  width: 250px;
+  display: block;
   text-align: center;
   background: transparent;
   color: #fff;
@@ -89,7 +89,8 @@ input#name:focus {
 }
 h2 {
   margin-bottom: 2rem;
-  font-size: 2.5rem;
+  font-size: 2rem;
+  text-align: center;
 }
 h3 {
   font-size: 1.5rem;
@@ -104,6 +105,31 @@ input#focus {
   background: transparent;
   color: #fff;
   font-size: 1.3rem;
+}
+.list {
+  margin-top: 1rem;
+  text-align: center;
+}
+.list__item {
+  display: flex;
+  margin-top: 0.5rem;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1rem;
+}
+.btn__group {
+  margin-left: 1rem;
+}
+.complete-list__item {
+  /* Customize checkbox here */
+}
+.remove-list__item {
+  border: none;
+  outline: none;
+  /* Customize button here */
+}
+.done {
+  text-decoration: line-through;
 }
 
 @media (max-width: 700px) {

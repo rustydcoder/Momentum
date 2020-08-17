@@ -1,5 +1,130 @@
 "use strict"
 
+// code imported from https://github.com/rustydcoder/todo-list-js/blob/master/index.js
+
+class Todo {
+  constructor(input, container) {
+    this.input = document.querySelector(input)
+    this.container = document.querySelector(container)
+
+    this._data = (localStorage.getItem('todoList')) ? JSON.parse(localStorage.getItem('todoList')) : {
+      todo: [],
+      state: true
+    }
+  }
+
+  addToList() {
+    const val = this.input.value;
+    const regex = (/([^\s])/);
+
+    if (regex.test(val) && !this._data.todo.includes(val)) {
+      this.insertToDom(val)
+      this._data.todo.push(val)
+      this.updateSavedData()
+    }
+
+    this.input.value = '';
+    this.input.focus()
+  }
+
+  insertToDom(val) {
+    const list = document.createElement('div')
+    const span = document.createElement('span')
+    span.innerText = val.trim()
+    list.classList.add('list__item')
+
+    const div = document.createElement('div')
+    div.classList.add('btn__group')
+
+    const removeBtn = document.createElement('button')
+    removeBtn.innerText = 'remove'
+    removeBtn.classList.add('remove-list__item')
+    removeBtn.addEventListener('click', (event) => this.removeFromList(event))
+
+    const checkbox = document.createElement('input')
+    checkbox.classList.add('complete-list__item')
+    checkbox.type = 'checkbox'
+    checkbox.value = val.trim()
+    checkbox.addEventListener('click', (event) => this.completeItem(event))
+
+    list.appendChild(span)
+    div.appendChild(checkbox)
+    div.appendChild(removeBtn)
+    list.appendChild(div)
+
+    this.container.insertBefore(list, this.container.childNodes[0])
+  }
+
+  emptyState() {
+    this.container.insertAdjacentHTML('afterend', `
+      <h2 class="empty__state" style="display: none">
+        Nothing to do?
+      </h2>
+      `)
+  }
+
+  updateSavedData() {
+    this._data.state = this._data.todo.length > 0 ? false : true
+    localStorage.setItem('todoList', JSON.stringify(this._data))
+  }
+
+  removeFromList(event) {
+    const item = event.target.parentNode.parentNode;
+    const parent = item.parentNode
+    const id = (/done/).test(item.className)
+    const value = item.firstElementChild.innerText
+
+    if (!id) {
+      this._data.todo.splice(this._data.todo.indexOf(value), 1)
+    }
+
+    this.updateSavedData()
+    parent.removeChild(item)
+  }
+
+  completeItem(event) {
+    const item = event.target.parentNode.parentNode;
+    const id = (/done/).test(item.className)
+    const value = event.target.value
+
+    if (event.target.checked) {
+      item.classList.add('done')
+    }
+    else {
+      item.classList.remove('done')
+    }
+
+    if (id) {
+      this._data.todo.push(value)
+    } else {
+      this._data.todo.splice(this._data.todo.indexOf(value), 1)
+    }
+
+    this.updateSavedData()
+  }
+
+  renderTodoList() {
+    this.emptyState()
+    this._data.todo.forEach(val => {
+      this.insertToDom(val)
+    })
+  }
+
+  init() {
+    this.renderTodoList()
+
+    this.input.addEventListener('keypress', (e) => {
+      if (e.keyCode == 13 || e.which == 13) {
+        this.addToList()
+      }
+    })
+
+  }
+}
+
+const todo = new Todo('#focus', '#list')
+todo.init()
+
 // Variable declaration
 const time = document.getElementById("time"),
   greeting = document.getElementById("greeting"),
@@ -10,8 +135,6 @@ const time = document.getElementById("time"),
 // Event Listeners
 name.addEventListener("keypress", setName);
 name.addEventListener("blur", setName);
-focus.addEventListener("keypress", setFocus);
-focus.addEventListener("blur", setFocus);
 
 // Handles Clock
 function showTime() {
@@ -72,7 +195,7 @@ function setName(event) {
       localStorage.setItem("name", event.target.value.trim());
 
       // Makes the width of the input === to the number of characters
-      // Hence the hardcoded 27
+      // Hence the hardcoded 26
       this.style.width = ((this.value.length + 1) * 26) + 'px';
       this.disabled = true
       name.blur();
@@ -80,17 +203,6 @@ function setName(event) {
   } else {
     localStorage.setItem("name", event.target.value.trim());
     this.disabled = true
-  }
-}
-
-function setFocus(e) {
-  if (e.type === "keypress") {
-    if (e.which == 13 || e.keyCode == 12) {
-      localStorage.setItem("focus", e.target.innerText);
-      focus.blur();
-    }
-  } else {
-    localStorage.setItem("focus", e.target.innerText);
   }
 }
 
@@ -103,14 +215,6 @@ function getName() {
   } else {
     name.value = localStorage.getItem("name");
     name.disabled = true;
-  }
-}
-
-function getFocus() {
-  if (localStorage.getItem("focus") === null) {
-    focus.innerText = "[------]";
-  } else {
-    focus.textContent = localStorage.getItem("focus");
   }
 }
 
@@ -129,5 +233,4 @@ function format({ urls: { raw }, location: { name, city, country } }) {
 
 showTime();
 getName();
-getFocus();
 render()
