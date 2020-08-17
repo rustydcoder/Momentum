@@ -1,6 +1,7 @@
 "use strict"
 
 // code imported from https://github.com/rustydcoder/todo-list-js/blob/master/index.js
+// made a few tweaks
 
 class Todo {
   constructor(input, container) {
@@ -14,7 +15,7 @@ class Todo {
   }
 
   addToList() {
-    const val = this.input.value;
+    const val = this.capitalizeVal(this.input.value);
     const regex = (/([^\s])/);
 
     if (regex.test(val) && !this._data.todo.includes(val)) {
@@ -27,6 +28,10 @@ class Todo {
     this.input.focus()
   }
 
+  capitalizeVal(val) {
+    return val.charAt(0).toUpperCase() + val.slice(1).toLowerCase()
+  }
+
   insertToDom(val) {
     const list = document.createElement('div')
     const span = document.createElement('span')
@@ -37,7 +42,7 @@ class Todo {
     div.classList.add('btn__group')
 
     const removeBtn = document.createElement('button')
-    removeBtn.innerText = 'remove'
+    removeBtn.innerHTML = '<i class="fa fa-times" aria-hidden="true"></i>'
     removeBtn.classList.add('remove-list__item')
     removeBtn.addEventListener('click', (event) => this.removeFromList(event))
 
@@ -69,7 +74,7 @@ class Todo {
   }
 
   removeFromList(event) {
-    const item = event.target.parentNode.parentNode;
+    const item = event.target.parentNode.parentNode.parentNode;
     const parent = item.parentNode
     const id = (/done/).test(item.className)
     const value = item.firstElementChild.innerText
@@ -145,7 +150,7 @@ function showTime() {
 
   hour = hour % 12 || 12; // 12 hour format
 
-  const amPm = hour < 12 ? "AM" : "PM";
+  const amPm = today.getHours() < 12 ? "AM" : "PM";
 
   time.innerHTML = `
   <span>${hour}:</span>
@@ -155,7 +160,9 @@ function showTime() {
 }
 
 async function fetchImage(query) {
-  const url = "https://api.unsplash.com/photos/random?query=" + query + "&count=8&client_id=yR6wwzEL63OWRgnba7liHfBDspTNj0sRDDrJMgmICgQ"
+  const url = "https://api.unsplash.com/photos/random?query="
+    + query +
+    "&count=8&client_id=yR6wwzEL63OWRgnba7liHfBDspTNj0sRDDrJMgmICgQ"
 
   const options = {
     method: 'GET',
@@ -166,7 +173,12 @@ async function fetchImage(query) {
   const response = await data.json()
 
   // returns a filtered array of images with city and country
-  return response.filter(({ location: { city, country } }) => city && country);
+  // and the conditions
+  return response.filter(({
+    location: { city, country },
+    height,
+    width
+  }) => city && country && width > 2000 && height > 2000);
 }
 
 async function render() {
@@ -184,9 +196,13 @@ async function render() {
   const unsplash = await fetchImage(day_night).catch(error => console.log('error', error));
   const imgObj = format(unsplash[0])
 
+  img.onload = function () { console.log('Image Loaded') }
   img.src = imgObj.raw
   document.querySelector('.name').innerHTML = imgObj.name
   document.querySelector('.country').innerHTML = imgObj.name === imgObj.city ? imgObj.country : `${imgObj.city}, ${imgObj.country}`
+  setTimeout(() => {
+    document.querySelector('.bg-alt').style.display = imgObj.raw ? 'none' : 'block'
+  }, 9000);
 }
 
 function setName(event) {
